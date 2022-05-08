@@ -64,7 +64,7 @@ void RenderSceneCB()
 	translate3[2][0] = 0.0f;        translate3[2][1] = 0.0f;        translate3[2][2] = sinf(Scale); translate3[2][3] = 0.0f;
 	translate3[3][0] = 0.0f;        translate3[3][1] = 0.0f;        translate3[3][2] = 0.0f;        translate3[3][3] = 1.0f;
 
-	mat4x4 translate = translate1 * translate2 * translate3; 
+	mat4x4 translate = translate1 * translate2 * translate3; // объединение преобразований
 
 	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &translate[0][0]);
 
