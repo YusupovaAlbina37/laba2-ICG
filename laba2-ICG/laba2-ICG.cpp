@@ -17,7 +17,7 @@ static const char* pVS = "                                                      
                                                                                     \n\
 layout (location = 0) in vec3 Position;                                             \n\
                                                                                     \n\
-uniform mat4 gWorld;                                                               \n\
+uniform mat4 gWorld;                                                                \n\
                                                                                     \n\
 void main()                                                                         \n\
 {                                                                                   \n\
@@ -57,14 +57,14 @@ void RenderSceneCB()
 	translate2[2][0] = 0.0f;         translate2[2][1] = 0.0f;          translate2[2][2] = 1.0f; translate2[2][3] = 0.0f;
 	translate2[3][0] = 0.0f;		 translate2[3][1] = 0.0f;          translate2[3][2] = 0.0f; translate2[3][3] = 1.0f;
 
-	//преобразование масштаба треугольника
+	//преобразования масштаба треугольника
 	mat4x4 translate3;
 	translate3[0][0] = sinf(Scale); translate3[0][1] = 0.0f;        translate3[0][2] = 0.0f;        translate3[0][3] = 0.0f;
 	translate3[1][0] = 0.0f;        translate3[1][1] = cosf(Scale); translate3[1][2] = 0.0f;        translate3[1][3] = 0.0f;
 	translate3[2][0] = 0.0f;        translate3[2][1] = 0.0f;        translate3[2][2] = sinf(Scale); translate3[2][3] = 0.0f;
 	translate3[3][0] = 0.0f;        translate3[3][1] = 0.0f;        translate3[3][2] = 0.0f;        translate3[3][3] = 1.0f;
 
-	mat4x4 translate = translate1 * translate2 * translate3; // объединение преобразований
+	mat4x4 translate = translate1 * translate2 * translate3; //объединение преобразований
 
 	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &translate[0][0]);
 
@@ -76,7 +76,7 @@ void RenderSceneCB()
 	glutSwapBuffers();
 }
 
-static void InitializeGlutCallbacks()
+static void InitializeGlutCallbacks() 
 {
 	glutDisplayFunc(RenderSceneCB); 
 	glutIdleFunc(RenderSceneCB); 
@@ -85,9 +85,9 @@ static void InitializeGlutCallbacks()
 static void CreateVertexBuffer()
 {
 	vec3 Vertices[3];
-	Vertices[0] = vec3(-1.0f, -1.0f, 1.0f);
-	Vertices[1] = vec3(1.0f, -1.0f, 1.0f);
-	Vertices[2] = vec3(0.0f, 1.0f, 1.0f);
+	Vertices[0] = vec3(-1.0f, -1.0f, 0.0f);
+	Vertices[1] = vec3(1.0f, -1.0f, 0.0f);
+	Vertices[2] = vec3(0.0f, 1.0f, 0.0f);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -134,7 +134,7 @@ static void CompileShaders()
 	AddShader(ShaderProgram, pVS, GL_VERTEX_SHADER); 
 	AddShader(ShaderProgram, pFS, GL_FRAGMENT_SHADER); 
 
-	glLinkProgram(ShaderProgram);
+	glLinkProgram(ShaderProgram); 
 
 	GLint Success = 0;
 	GLchar ErrorLog[1024] = { 0 };
@@ -143,7 +143,7 @@ static void CompileShaders()
 		glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
 		fprintf(stderr, "Error linking shader program: '%s'\n", ErrorLog);
 		exit(1);
-	}
+	} 
 
 	glValidateProgram(ShaderProgram); 
 
