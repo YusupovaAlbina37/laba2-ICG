@@ -6,9 +6,12 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
+#include "pipeline.h"
+
 using namespace glm;
 
 GLuint VBO;
+GLuint IBO;
 GLuint gWorldLocation;
 
 //вершинный шейдер
@@ -19,20 +22,25 @@ layout (location = 0) in vec3 Position;                                         
                                                                                     \n\
 uniform mat4 gWorld;                                                                \n\
                                                                                     \n\
+out vec4 Color;                                                                     \n\
+                                                                                    \n\
 void main()                                                                         \n\
 {                                                                                   \n\
      gl_Position = gWorld * vec4(Position, 1.0);                                    \n\
+     Color = vec4(clamp(Position, 0.0, 1.0), 1.0);                                  \n\
 }";
 
 //пиксельный шейдер
 static const char* pFS = "                                                          \n\
 #version 330                                                                        \n\
                                                                                     \n\
+in vec4 Color;                                                                      \n\
+                                                                                    \n\
 out vec4 FragColor;                                                                 \n\
                                                                                     \n\
 void main()                                                                         \n\
 {                                                                                   \n\
-     FragColor = vec4(1.0, 0.0, 0.0, 1.0);                                          \n\
+     FragColor = Color;                                                             \n\
 }";
 
 void RenderSceneCB()
@@ -43,35 +51,21 @@ void RenderSceneCB()
 
 	Scale += 0.001f; 
 
-	//перемещение треугольника по координате X
-	mat4x4 translate1;
-	translate1[0][0] = 1.0f; translate1[0][1] = 0.0f; translate1[0][2] = 0.0f; translate1[0][3] = sinf(Scale);
-	translate1[1][0] = 0.0f; translate1[1][1] = 1.0f; translate1[1][2] = 0.0f; translate1[1][3] = 0.0f;
-	translate1[2][0] = 0.0f; translate1[2][1] = 0.0f; translate1[2][2] = 1.0f; translate1[2][3] = 0.0f;
-	translate1[3][0] = 0.0f; translate1[3][1] = 0.0f; translate1[3][2] = 0.0f; translate1[3][3] = 1.0f;
+	Pipeline p;
+	p.Scale(sinf(Scale * 0.1f), sinf(Scale * 0.1f), sinf(Scale * 0.1f));
+	p.WorldPos(sinf(Scale), 0.0f, 0.0f);
+	p.Rotate(sinf(Scale) * 90.0f, sinf(Scale) * 90.0f, sinf(Scale) * 90.0f);
 
-	//вращение треугольника вокруг оси Z
-	mat4x4 translate2;
-	translate2[0][0] = cosf(Scale);  translate2[0][1] = -sinf(Scale);  translate2[0][2] = 0.0f; translate2[0][3] = 0.0f;
-	translate2[1][0] = sinf(Scale);  translate2[1][1] = cosf(Scale);   translate2[1][2] = 0.0f; translate2[1][3] = 0.0f;
-	translate2[2][0] = 0.0f;         translate2[2][1] = 0.0f;          translate2[2][2] = 1.0f; translate2[2][3] = 0.0f;
-	translate2[3][0] = 0.0f;		 translate2[3][1] = 0.0f;          translate2[3][2] = 0.0f; translate2[3][3] = 1.0f;
-
-	//преобразования масштаба треугольника
-	mat4x4 translate3;
-	translate3[0][0] = sinf(Scale); translate3[0][1] = 0.0f;        translate3[0][2] = 0.0f;        translate3[0][3] = 0.0f;
-	translate3[1][0] = 0.0f;        translate3[1][1] = cosf(Scale); translate3[1][2] = 0.0f;        translate3[1][3] = 0.0f;
-	translate3[2][0] = 0.0f;        translate3[2][1] = 0.0f;        translate3[2][2] = sinf(Scale); translate3[2][3] = 0.0f;
-	translate3[3][0] = 0.0f;        translate3[3][1] = 0.0f;        translate3[3][2] = 0.0f;        translate3[3][3] = 1.0f;
-
-	mat4x4 translate = translate1 * translate2 * translate3; //объединение преобразований
-
-	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &translate[0][0]);
+	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, (const GLfloat*)p.GetTrans());
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+
+	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+
 	glDisableVertexAttribArray(0);
 	glutSwapBuffers();
 }
@@ -84,14 +78,26 @@ static void InitializeGlutCallbacks()
 
 static void CreateVertexBuffer()
 {
-	vec3 Vertices[3];
+	vec3 Vertices[4];
 	Vertices[0] = vec3(-1.0f, -1.0f, 0.0f);
-	Vertices[1] = vec3(1.0f, -1.0f, 0.0f);
-	Vertices[2] = vec3(0.0f, 1.0f, 0.0f);
+	Vertices[1] = vec3(0.0f, -1.0f, 1.0f);
+	Vertices[2] = vec3(1.0f, -1.0f, 0.0f);
+	Vertices[3] = vec3(0.0f, 1.0f, 0.0f);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+}
+
+static void CreateIndexBuffer()
+{
+	unsigned int Indices[] = { 0, 3, 1,
+							   1, 3, 2,
+							   2, 3, 0,
+							   0, 2, 1 };
+	glGenBuffers(1, &IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 }
 
 static void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType) 
@@ -166,7 +172,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowSize(1024, 768);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("Tutorial 06");
+	glutCreateWindow("Tutorial 11");
 
 	InitializeGlutCallbacks();
 
@@ -180,6 +186,7 @@ int main(int argc, char **argv)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	CreateVertexBuffer();
+	CreateIndexBuffer();
 
 	CompileShaders();
 

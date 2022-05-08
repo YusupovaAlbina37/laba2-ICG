@@ -152,6 +152,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="laba2-ICG.cpp" />
+    <ClCompile Include="pipeline.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pipeline.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
