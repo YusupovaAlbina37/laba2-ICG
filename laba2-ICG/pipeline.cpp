@@ -45,14 +45,29 @@ void Pipeline::InitTranslationTransform(mat4& m) const
 	m[3][0] = 0.0f; m[3][1] = 0.0f; m[3][2] = 0.0f; m[3][3] = 1.0f;
 }
 
+void Pipeline::InitPerspectiveProj(mat4& m) const
+{
+	const float ar = m_persProj.Width / m_persProj.Height;
+	const float zNear = m_persProj.zNear;
+	const float zFar = m_persProj.zFar;
+	const float zRange = zNear - zFar;
+	const float tanHalfFOV = tanf(ToRadian(m_persProj.FOV / 2.0f));
+
+	m[0][0] = 1.0f / (tanHalfFOV * ar); m[0][1] = 0.0f;              m[0][2] = 0.0f;                     m[0][3] = 0.0;
+	m[1][0] = 0.0f;                     m[1][1] = 1.0f / tanHalfFOV; m[1][2] = 0.0f;                     m[1][3] = 0.0;
+	m[2][0] = 0.0f;                     m[2][1] = 0.0f;              m[2][2] = (-zNear - zFar) / zRange; m[2][3] = 2.0f * zFar*zNear / zRange;
+	m[3][0] = 0.0f;                     m[3][1] = 0.0f;              m[3][2] = 1.0f;                     m[3][3] = 0.0;
+}
+
 const mat4* Pipeline::GetTrans()
 {
-	mat4 ScaleTrans, RotateTrans, TranslationTrans;
+	mat4 ScaleTrans, RotateTrans, TranslationTrans, PersProjTrans;
 
 	InitScaleTransform(ScaleTrans);
 	InitRotateTransform(RotateTrans);
 	InitTranslationTransform(TranslationTrans);
+	InitPerspectiveProj(PersProjTrans);
 
-	m_transformation = TranslationTrans * RotateTrans * ScaleTrans;
+	m_transformation = TranslationTrans * PersProjTrans * RotateTrans * ScaleTrans;
 	return &m_transformation;
 }

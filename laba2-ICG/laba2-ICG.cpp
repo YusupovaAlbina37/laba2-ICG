@@ -7,6 +7,8 @@
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
 #include "pipeline.h"
+#define WINDOW_WIDTH 1024
+#define WINDOW_HEIGHT 768
 
 using namespace glm;
 
@@ -52,9 +54,8 @@ void RenderSceneCB()
 	Scale += 0.001f; 
 
 	Pipeline p;
-	p.Scale(sinf(Scale * 0.1f), sinf(Scale * 0.1f), sinf(Scale * 0.1f));
-	p.WorldPos(sinf(Scale), 0.0f, 0.0f);
-	p.Rotate(sinf(Scale) * 90.0f, sinf(Scale) * 90.0f, sinf(Scale) * 90.0f);
+	p.WorldPos(0.0f, 0.0f, 5.0f);
+	p.SetPerspectiveProj(30.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 1.0f, 1000.0f);
 
 	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, (const GLfloat*)p.GetTrans());
 
@@ -83,6 +84,10 @@ static void CreateVertexBuffer()
 	Vertices[1] = vec3(0.0f, -1.0f, 1.0f);
 	Vertices[2] = vec3(1.0f, -1.0f, 0.0f);
 	Vertices[3] = vec3(0.0f, 1.0f, 0.0f);
+	/*Vertices[0] = vec3(-1.0f, -1.0f, 0.4f);
+	Vertices[1] = vec3(-0.35f, -0.75f, 1.0f);
+	Vertices[2] = vec3(1.0f, -1.0f, 0.4f);
+	Vertices[3] = vec3(0.0f, 1.0f, 0.0f);*/
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -170,9 +175,9 @@ int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowSize(1024, 768);
+	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("Tutorial 11");
+	glutCreateWindow("Tutorial 12");
 
 	InitializeGlutCallbacks();
 
